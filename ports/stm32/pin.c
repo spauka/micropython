@@ -414,6 +414,42 @@ STATIC mp_obj_t pin_on(mp_obj_t self_in) {
 }
 STATIC MP_DEFINE_CONST_FUN_OBJ_1(pin_on_obj, pin_on);
 
+STATIC mp_obj_t pin_neo(mp_obj_t self_in, mp_obj_t buf_in) {
+  pin_obj_t *self = self_in;
+  mp_buffer_info_t bufinfo;
+  mp_get_buffer_raise(buf_in, &bufinfo, MP_BUFFER_READ);
+
+  uint32_t F_CPU = HAL_RCC_GetSysClockFreq();
+  uint32_t CYCLES_400_T0H = (F_CPU / 3800000);
+  uint32_t CYCLES_400_T1H = (F_CPU / 1500000);
+  uint32_t CYCLES_400 =     (F_CPU /  800000);
+  uint8_t* d = bufinfo.buf;
+  mp_hal_ticks_cpu_enable();
+  mp_uint_t irq_state = disable_irq();
+  uint32_t cyc = DWT->CYCCNT + CYCLES_400;
+  for (uint32_t i = 0; i < bufinfo.len; ++i) {
+    uint8_t b = d[i];
+    for(uint8_t mask = 0x80; mask; mask >>= 1) {
+      while(DWT->CYCCNT - cyc < CYCLES_400);
+      cyc  = DWT->CYCCNT;
+      //*set = 1;
+      mp_hal_pin_high(self);
+      if(b & mask) {
+        while(DWT->CYCCNT - cyc < CYCLES_400_T1H);
+      } else {
+        while(DWT->CYCCNT - cyc < CYCLES_400_T0H);
+      }
+      //*clr = 1;
+      mp_hal_pin_low(self);
+    }
+  }
+  while(DWT->CYCCNT - cyc < CYCLES_400);
+
+  enable_irq(irq_state);
+  return mp_const_none;
+}
+STATIC MP_DEFINE_CONST_FUN_OBJ_2(pin_neo_obj, pin_neo);
+
 // pin.irq(handler=None, trigger=IRQ_FALLING|IRQ_RISING, hard=False)
 STATIC mp_obj_t pin_irq(size_t n_args, const mp_obj_t *pos_args, mp_map_t *kw_args) {
     enum { ARG_handler, ARG_trigger, ARG_hard };
@@ -521,6 +557,7 @@ STATIC const mp_rom_map_elem_t pin_locals_dict_table[] = {
     { MP_ROM_QSTR(MP_QSTR_value),   MP_ROM_PTR(&pin_value_obj) },
     { MP_ROM_QSTR(MP_QSTR_off),     MP_ROM_PTR(&pin_off_obj) },
     { MP_ROM_QSTR(MP_QSTR_on),      MP_ROM_PTR(&pin_on_obj) },
+    { MP_ROM_QSTR(MP_QSTR_neo),      MP_ROM_PTR(&pin_neo_obj) },
     { MP_ROM_QSTR(MP_QSTR_irq),     MP_ROM_PTR(&pin_irq_obj) },
 
     // Legacy names as used by pyb.Pin
