@@ -6,4 +6,4 @@ TEXT0_ADDR = 0x08000000
 TEXT1_ADDR = 0x08020000
 
 # Add extra modules dir
-FROZEN_MPY_DIR = boards/QUOKKA/modules
+FROZEN_MANIFEST = boards/QUOKKA/manifest.py
