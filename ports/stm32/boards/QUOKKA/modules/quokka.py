@@ -275,7 +275,11 @@ gyro = _imu.gyro
 
 
 # Need to update the radio module to look more like the micro:bit (e.g. on/off).
-radio = drivers.QuokkaRadio(machine.Pin('Y4', machine.Pin.OUT), _internal_spi)
+try:
+  radio = drivers.QuokkaRadio(machine.Pin('Y4', machine.Pin.OUT), _internal_spi)
+except drivers.quokka_radio.RadioError:
+  print("Failed to initialize radio!")
+  radio = None
 
 # Mirror a few micro:bit functions.
 def temperature():
