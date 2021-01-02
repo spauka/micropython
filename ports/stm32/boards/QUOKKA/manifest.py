@@ -1,6 +1,12 @@
-include("$(MPY_DIR)/extmod/uasyncio/manifest.py")
-freeze("$(MPY_DIR)/drivers/dht", "dht.py")
-freeze("$(MPY_DIR)/drivers/display", ("lcd160cr.py", "lcd160cr_test.py"))
-freeze("$(MPY_DIR)/drivers/onewire", "onewire.py")
-freeze("boards/QUOKKA/modules", "quokka.py")
-freeze("boards/QUOKKA/modules/drivers", ("__init__.py", "imu.py", "mpu9250.py", "quokka_radio.py", "series.py", "ssd1306.py", "vector3d.py"))
+include("../manifest.py")
+freeze("modules", "quokka.py", opt=3)
+freeze("modules", (
+    "drivers/__init__.py",
+    "drivers/imu.py",
+    "drivers/mpu9250.py",
+    "drivers/quokka_radio.py",
+    "drivers/series.py",
+    "drivers/ssd1306.py",
+    "drivers/vector3d.py"),
+    opt=3
+)
